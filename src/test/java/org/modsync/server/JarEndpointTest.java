@@ -30,9 +30,9 @@ class JarEndpointTest {
     void startServer() throws IOException {
         Files.write(jarDir.resolve("sodium.jar"), "fake sodium content".getBytes());
         Config config = new Config("127.0.0.1", 0, "http://127.0.0.1:0",
-                jarDir.toString(), "/static", "TestPack", "1.21.1", "fabric", "0.16.0");
+                jarDir.toString(), staticDir.toString(), "TestPack", "1.21.1", "fabric", "0.16.0");
         Manifest manifest = ManifestBuilder.scan(jarDir, config);
-        runner = new HttpServerRunner("127.0.0.1", 0, jarDir, staticDir, manifest);
+        runner = new HttpServerRunner(config, manifest);
         runner.start();
     }
 

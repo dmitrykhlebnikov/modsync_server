@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{pack_name}}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 2rem 1rem;
+      font-family: system-ui, sans-serif;
+      background: #111; color: #ccc;
+      max-width: 640px; margin-inline: auto;
+    }
+    h1 { color: #fff; margin-top: 0; }
+    p { line-height: 1.6; }
+    pre {
+      background: #1e1e1e; border: 1px solid #333;
+      border-radius: 6px; padding: 1rem;
+      overflow-x: auto;
+    }
+    code { font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; color: #9cdcfe; font-size: 0.9rem; }
+    a { color: #4ec9b0; }
+    a:hover { color: #9cdcfe; }
+  </style>
+</head>
+<body>
+  <h1>{{pack_name}}</h1>
+  <p><a href="{{base_url}}/modsync.exe">Download modsync.exe</a></p>
+  <p>Manifest URL &mdash; paste this when prompted:</p>
+  <pre><code>{{manifest_url}}</code></pre>
+  <p>Or run directly in a terminal:</p>
+  <pre><code>modsync.exe {{manifest_url}}</code></pre>
+</body>
+</html>

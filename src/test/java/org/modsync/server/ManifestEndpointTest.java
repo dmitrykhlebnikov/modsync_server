@@ -1,5 +1,6 @@
 package org.modsync.server;
 
+import org.modsync.Config;
 import org.modsync.Manifest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,9 @@ class ManifestEndpointTest {
 
     @BeforeEach
     void startServer() throws IOException {
-        runner = new HttpServerRunner("127.0.0.1", 0, jarDir, staticDir, testManifest());
+        Config config = new Config("127.0.0.1", 0, "http://127.0.0.1:0",
+                jarDir.toString(), staticDir.toString(), "TestPack", "1.21.1", "fabric", "0.16.0");
+        runner = new HttpServerRunner(config, testManifest());
         runner.start();
     }
 

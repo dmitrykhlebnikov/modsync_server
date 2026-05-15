@@ -1,5 +1,6 @@
 package org.modsync.server;
 
+import org.modsync.Config;
 import org.modsync.Manifest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,9 +29,11 @@ class StaticEndpointTest {
     @BeforeEach
     void startServer() throws IOException {
         Files.write(staticDir.resolve("modsync.exe"), "fake exe content".getBytes());
+        Config config = new Config("127.0.0.1", 0, "http://127.0.0.1:0",
+                jarDir.toString(), staticDir.toString(), "TestPack", "1.21.1", "fabric", "0.16.0");
         Manifest manifest = new Manifest("TestPack", "abc", "1.21.1",
                 new Manifest.Loader("fabric", "0.16.0"), List.of());
-        runner = new HttpServerRunner("127.0.0.1", 0, jarDir, staticDir, manifest);
+        runner = new HttpServerRunner(config, manifest);
         runner.start();
     }
 
