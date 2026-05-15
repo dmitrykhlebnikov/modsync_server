@@ -19,22 +19,26 @@ public class HttpServerRunner {
 
         server = HttpServer.create(new InetSocketAddress(config.bindAddress(), config.port()), 0);
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
-        server.createContext("/manifest.json", new ManifestHandler(manifest));
-        server.createContext("/jars/", new JarHandler(jarDir, manifest));
+        server.createContext("/manifest.json", wrap(new ManifestHandler(manifest)));
+        server.createContext("/jars/", wrap(new JarHandler(jarDir, manifest)));
 
         LandingPageHandler landing = new LandingPageHandler(config.baseUrl(), manifest.packName());
         StaticHandler staticFiles = new StaticHandler(staticDir);
-        server.createContext("/", exchange -> {
+        server.createContext("/", wrap(exchange -> {
             if ("/".equals(exchange.getRequestURI().getPath())) {
                 landing.handle(exchange);
             } else {
                 staticFiles.handle(exchange);
             }
-        });
+        }));
     }
 
     public void start() {
         server.start();
+    }
+
+    private static ErrorWrappingHandler wrap(com.sun.net.httpserver.HttpHandler h) {
+        return new ErrorWrappingHandler(h);
     }
 
     public void stop() {

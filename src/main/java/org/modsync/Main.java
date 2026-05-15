@@ -10,14 +10,18 @@ public class Main {
         Config config = Config.load(configPath);
 
         Manifest manifest = ManifestBuilder.scan(Path.of(config.jarDirectory()), config);
-        System.out.println("Loaded " + manifest.mods().size() + " mod(s), pack_version=" + manifest.packVersion());
 
         HttpServerRunner runner = new HttpServerRunner(config, manifest);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> runner.stop()));
         runner.start();
 
-        System.out.println("Listening on " + config.bindAddress() + ":" + config.port());
-        System.out.println("Manifest: " + config.baseUrl() + "/manifest.json");
+        String base = config.baseUrl();
+        System.out.println("pack:      " + manifest.packName() + "  (" + manifest.mods().size() + " mods)");
+        System.out.println("version:   " + manifest.packVersion());
+        System.out.println("listening: " + config.bindAddress() + ":" + config.port());
+        System.out.println("landing:   " + base + "/");
+        System.out.println("manifest:  " + base + "/manifest.json");
+        System.out.println("exe:       " + base + "/modsync.exe");
     }
 
     static Path parseConfigArg(String[] args) {
