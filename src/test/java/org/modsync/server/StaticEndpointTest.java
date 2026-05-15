@@ -1,8 +1,6 @@
 package org.modsync.server;
 
-import org.modsync.Config;
 import org.modsync.Manifest;
-import org.modsync.ManifestBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,23 +13,23 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class JarEndpointTest {
+class StaticEndpointTest {
 
-    @TempDir Path jarDir;
     @TempDir Path staticDir;
+    @TempDir Path jarDir;
 
     private HttpServerRunner runner;
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
 
     @BeforeEach
     void startServer() throws IOException {
-        Files.write(jarDir.resolve("sodium.jar"), "fake sodium content".getBytes());
-        Config config = new Config("127.0.0.1", 0, "http://127.0.0.1:0",
-                jarDir.toString(), "/static", "TestPack", "1.21.1", "fabric", "0.16.0");
-        Manifest manifest = ManifestBuilder.scan(jarDir, config);
+        Files.write(staticDir.resolve("modsync.exe"), "fake exe content".getBytes());
+        Manifest manifest = new Manifest("TestPack", "abc", "1.21.1",
+                new Manifest.Loader("fabric", "0.16.0"), List.of());
         runner = new HttpServerRunner("127.0.0.1", 0, jarDir, staticDir, manifest);
         runner.start();
     }
@@ -42,46 +40,45 @@ class JarEndpointTest {
     }
 
     @Test
-    void knownJarReturns200WithJavaArchiveContentType() throws Exception {
-        var response = getJar("sodium.jar");
+    void exeFileReturns200WithOctetStreamContentType() throws Exception {
+        var response = get("/modsync.exe");
 
         assertEquals(200, response.statusCode());
-        assertEquals("application/java-archive",
+        assertEquals("application/octet-stream",
                 response.headers().firstValue("content-type").orElse(""));
     }
 
     @Test
-    void knownJarBodyMatchesDiskFile() throws Exception {
+    void exeFileHasAttachmentContentDisposition() throws Exception {
+        var response = get("/modsync.exe");
+
+        String disposition = response.headers().firstValue("content-disposition").orElse("");
+        assertTrue(disposition.contains("attachment"), "should be attachment");
+        assertTrue(disposition.contains("modsync.exe"), "should include filename");
+    }
+
+    @Test
+    void exeBodyMatchesDiskFile() throws Exception {
         var response = CLIENT.send(
-                HttpRequest.newBuilder().uri(jarUri("sodium.jar")).GET().build(),
+                HttpRequest.newBuilder().uri(uri("/modsync.exe")).GET().build(),
                 HttpResponse.BodyHandlers.ofByteArray());
 
-        byte[] expected = Files.readAllBytes(jarDir.resolve("sodium.jar"));
+        byte[] expected = Files.readAllBytes(staticDir.resolve("modsync.exe"));
         assertArrayEquals(expected, response.body());
     }
 
     @Test
     void contentLengthMatchesFileSize() throws Exception {
-        var response = getJar("sodium.jar");
-        long expectedSize = Files.size(jarDir.resolve("sodium.jar"));
+        var response = get("/modsync.exe");
+        long expectedSize = Files.size(staticDir.resolve("modsync.exe"));
 
         assertEquals(expectedSize,
                 response.headers().firstValueAsLong("content-length").orElse(-1));
     }
 
     @Test
-    void unknownJarReturns404() throws Exception {
-        var response = getJar("nonexistent.jar");
-
-        assertEquals(404, response.statusCode());
-    }
-
-    @Test
-    void filenameNotInManifestReturns404() throws Exception {
-        // File exists on disk but is not in the manifest (added after scan)
-        Files.write(jarDir.resolve("unlisted.jar"), new byte[]{1});
-
-        var response = getJar("unlisted.jar");
+    void unknownFileReturns404() throws Exception {
+        var response = get("/notfound.exe");
 
         assertEquals(404, response.statusCode());
     }
@@ -90,7 +87,7 @@ class JarEndpointTest {
     void postReturns405() throws Exception {
         var response = CLIENT.send(
                 HttpRequest.newBuilder()
-                        .uri(jarUri("sodium.jar"))
+                        .uri(uri("/modsync.exe"))
                         .POST(HttpRequest.BodyPublishers.noBody())
                         .build(),
                 HttpResponse.BodyHandlers.discarding());
@@ -98,13 +95,13 @@ class JarEndpointTest {
         assertEquals(405, response.statusCode());
     }
 
-    private HttpResponse<Void> getJar(String filename) throws Exception {
+    private HttpResponse<Void> get(String path) throws Exception {
         return CLIENT.send(
-                HttpRequest.newBuilder().uri(jarUri(filename)).GET().build(),
+                HttpRequest.newBuilder().uri(uri(path)).GET().build(),
                 HttpResponse.BodyHandlers.discarding());
     }
 
-    private URI jarUri(String filename) {
-        return URI.create("http://127.0.0.1:" + runner.port() + "/jars/" + filename);
+    private URI uri(String path) {
+        return URI.create("http://127.0.0.1:" + runner.port() + path);
     }
 }

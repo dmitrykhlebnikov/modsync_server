@@ -13,7 +13,7 @@ public class Main {
         System.out.println("Loaded " + manifest.mods().size() + " mod(s), pack_version=" + manifest.packVersion());
 
         HttpServerRunner runner = new HttpServerRunner(config.bindAddress(), config.port(),
-                Path.of(config.jarDirectory()), manifest);
+                Path.of(config.jarDirectory()), Path.of(config.staticDirectory()), manifest);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> runner.stop()));
         runner.start();
 

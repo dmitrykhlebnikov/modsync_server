@@ -18,15 +18,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ManifestEndpointTest {
 
-    @TempDir
-    Path jarDir;
+    @TempDir Path jarDir;
+    @TempDir Path staticDir;
 
     private HttpServerRunner runner;
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
 
     @BeforeEach
     void startServer() throws IOException {
-        runner = new HttpServerRunner("127.0.0.1", 0, jarDir, testManifest());
+        runner = new HttpServerRunner("127.0.0.1", 0, jarDir, staticDir, testManifest());
         runner.start();
     }
 

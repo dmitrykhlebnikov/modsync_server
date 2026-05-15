@@ -12,11 +12,12 @@ public class HttpServerRunner {
 
     private final HttpServer server;
 
-    public HttpServerRunner(String bindAddress, int port, Path jarDir, Manifest manifest) throws IOException {
+    public HttpServerRunner(String bindAddress, int port, Path jarDir, Path staticDir, Manifest manifest) throws IOException {
         server = HttpServer.create(new InetSocketAddress(bindAddress, port), 0);
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         server.createContext("/manifest.json", new ManifestHandler(manifest));
         server.createContext("/jars/", new JarHandler(jarDir, manifest));
+        server.createContext("/", new StaticHandler(staticDir));
     }
 
     public void start() {
