@@ -1,7 +1,6 @@
 package org.modsync;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.GsonBuilder;
+import org.modsync.server.HttpServerRunner;
 
 import java.nio.file.Path;
 
@@ -13,12 +12,13 @@ public class Main {
         Manifest manifest = ManifestBuilder.scan(Path.of(config.jarDirectory()), config);
         System.out.println("Loaded " + manifest.mods().size() + " mod(s), pack_version=" + manifest.packVersion());
 
-        String json = new GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .setPrettyPrinting()
-                .create()
-                .toJson(manifest);
-        System.out.println(json);
+        HttpServerRunner runner = new HttpServerRunner(config.bindAddress(), config.port(),
+                Path.of(config.jarDirectory()), manifest);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> runner.stop()));
+        runner.start();
+
+        System.out.println("Listening on " + config.bindAddress() + ":" + config.port());
+        System.out.println("Manifest: " + config.baseUrl() + "/manifest.json");
     }
 
     static Path parseConfigArg(String[] args) {
