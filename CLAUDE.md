@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew test
 
 # Run a single test class
-./gradlew test --tests "org.example.PathSafetyTest"
+./gradlew test --tests "org.modsync.PathSafetyTest"
 
 # Produce a runnable distribution
 ./gradlew installDist
